@@ -1,0 +1,275 @@
+#Practical No 1 - binomial distribution
+
+binomial = function(){
+  cat('input the number of trails for Binomial Distribution') #concatenate and print the arguments
+  n = scan(nmax = 1) #used to read input from the console
+  cat('input the number of success for individual trail')
+  p = scan(nmax = 1)
+  cat('input X whose probability needs to be calculated')
+  x = scan(nmax = 1)
+  print('enter the sign(<=, =, =>)')
+  var = readline() #used to read a single line of input from the console
+  if(var == '='){
+    cat('P(X =',x,')=',dbinom(x,n,p))#calculates the probability mass function (PMF) of a binomial distribution
+  }
+  else if(var == '<='){
+    cat("P(X <=",x,")=",pbinom(x,n,p))#calculates the cumulative distribution function (CDF) of a binomial distribution
+  }
+  else if(var == '>'){
+    cat("P(X >",x,")=",1-pbinom(x,n,p))
+  }
+}
+binomial()
+
+
+# Practical 2 - normal distribution
+
+normald = function(){
+  cat('input X whose probability needs to be calculated')
+  x = scan(nmax = 1)
+  cat('input the mean of the distribution')
+  mean = scan(nmax = 1)
+  cat('input the standard deviation of the distribution')
+  sd = scan(nmax = 1)
+  print('enter the sign(<=, =, =>)')
+  var = readline()
+  if(var == '='){
+    cat('P(X =',x,')=',dnorm(x,mean,sd))
+  }else if(var == '<='){
+    cat("P(X <=",x,")=",pnorm(x,mean,sd))
+  }else if(var == '>'){
+    cat("P(X >",x,")=",1-pnorm(x,mean,sd))
+  }
+}
+normald()
+
+#Practical 3 - plotting binomial distribution
+
+binomial = function(){
+  cat('input n the number of trails for Binomial Distribution')
+  n = scan(nmax = 1)
+  cat('input p the number of success for individual trail')
+  p = scan(nmax = 1)
+  cat('input x whose probability needs to be calculated')
+  x = scan(nmax = 1)
+  print('enter the sign')
+  var = readline()
+  x=0:n
+  if(var == '='){
+    plot(x,dbinom(x,n,p),type='h',main='Binomial Distribution',
+         ylab='Probability',xlab='# Successes',lwd=8,col='red')
+  }else if(var == '<='){
+    plot(x,pbinom(x,n,p),type='h',main='Binomial Distribution',
+         ylab='Probability',xlab='# Successes',lwd=8,col='green')
+  }else if(var == '>'){
+    plot(x,1-pbinom(x,n,p),type='h',main='Binomial Distribution',
+         ylab='Probability',xlab='# Successes',lwd=8,col='blue')
+  }
+}
+binomial()
+
+# Practical 4 - normal distribution plotting
+
+normald = function(){
+  cat('input the mean of the distribution')
+  mean = scan(nmax = 1)
+  cat('input the standard deviation of the distribution')
+  sd = scan(nmax = 1)
+  print('enter the sign')
+  var = readline()
+  if(var == '='){
+    curve(dnorm(x,mean,sd),from=-5, to=5, col='red', lwd=3)
+  }else if(var == '<='){
+    curve(pnorm(x,mean,sd),from=-5, to=5, col='green', lwd=3)
+  }else if(var == '>'){
+    curve(1-pnorm(x,mean,sd),from=-5, to=5, col='blue', lwd=3)
+  }
+}
+normald()
+
+
+#Practical 5 - pdf,pmf cdf,for discrete and continuous
+#pmf for binomial(discrete)
+bino=function(x,y,z){
+  x=0:y
+  (plot(x,dbinom(x,y,z),type='s',col='red',lwd=3))
+}
+bino(30,40,0.5)
+
+#cdf for binomial
+bino1=function(x,y,z){
+  x=0:y
+  cat('enter the sign')
+  vars=readline()
+  if(vars=='<='){
+    plot(x,pbinom(x,y,z),type='s',col='blue',lwd=3)
+  }else if(vars=='>'){
+    plot(x,1-pbinom(x,y,z),type='s',col='purple',lwd=3)
+  }
+}
+bino1(35,35,0.6)
+
+#pdf for normal(continuous)
+normald=function(y,z){
+  curve(dnorm(x,y,z),from=-5,to=5,col='red',lwd=3)
+}
+normald(0,1)
+
+#cdf for normal
+normald1=function(y,z){
+  print('enter the sign')
+  var=readline()
+  if(var == '<='){
+    curve(pnorm(x,y,z),from=-5,to=5,col='blue',lwd=3)
+  }else if(var=='>'){
+    curve(1-pnorm(x,y,z),from=-5,to=5,col='purple',lwd=3)
+  }
+}
+normald1(0,1)
+
+
+#Practical 6 - ttest ftest
+
+#t-Test
+ttest=function(){
+  cat('enter sample')
+  x=scan()
+  cat('enter the mean')
+  mean=scan(nmax = 1)
+  t.test(x,y=NULL,mu=mean)
+}
+ttest()
+
+#two sample t-Test (independent and dependent sample)
+tttest=function(){
+  cat('enter 1st sample')
+  n1=scan()
+  cat('enter 2nd sample')
+  n2=scan()
+  if (length(n1) != length(n2)){
+    print('Independent samples')
+    t.test(x=n1,y=n2,mu=0,paired=FALSE)
+  }else{
+    print('Dependent samples')
+    t.test(x=n1,y=n2,mu=0,paired=TRUE)
+  }
+}
+tttest()
+
+#Ftest
+ftest=function(){
+  cat('enter 1st sample')
+  s1=scan()
+  cat('enter 2nd sample')
+  s2=scan()
+  var.test(s1,s2)
+}
+ftest()
+
+
+
+#Practical 8 non paramertic
+#sign test
+library(BSDA)
+sign=function(){
+  cat ('enter sample')
+  x=scan()
+  cat('enter median')
+  md=scan(nmax=1)
+  cat ('enter choice of test (two.sided, greater, less)')
+  choice=readline()
+  SIGN.test (x,y=NULL, md, alternative=choice)
+}
+sign()
+
+
+#Practical 9 kruskal.test
+
+s1=sample.int(100,10)
+s1
+s2=sample.int(100,10)
+s2
+s=data.frame(s1,s2)
+s
+summary(s)
+stacked=stack(s)
+head(stacked)
+kruskal.test(values~ind,data=stacked)
+
+
+#Practical 10 wilcoxon
+
+
+wilcoxon=function(){
+  cat('enter the values in sample')
+  x = scan(nmax = 10)
+  cat ('median of the population')
+  mu = scan(nmax = 1)
+  {
+    print('enter sign')
+    var=readline()
+    if (var == '='){
+      wilcox.test(x,y= NULL, mu, alternative='two.sided', paired = F, exact =F)
+    }else if (var== "<"){
+      wilcox.test(x,y= NULL, mu, alternative ='less', paired = F, exact=F)
+    }else if (var==">"){
+      wilcox.test(x,y=NULL,mu,alternative ='greater', paired=F, exact=F)
+    }
+  }
+}
+wilcoxon()
+
+#wilcoxon for two pairs large sample
+cat ('enter the x values in sample')
+x = scan()
+cat ('enter the y values in sample')
+y = scan()
+
+cat('median of the population')
+mul scan (nmax = 1)
+lenx=length(x)
+lenx
+leny=length(y)
+leny
+if(lenx == leny & lenx >= 30 & leny >= 30){
+  {
+    print('enter sign')
+    var readline()
+    if(var==''){
+      wilcox.test(x,y,mu1,alternative='two.sided',paired=F,extact=F)
+      }
+    else if(var == "<"){
+      wilcox.test(x,y,mu1,alternative='less',paired=F,extact=F)
+      }
+    else if(var == '>'){
+      wilcox.test(x,y,mu1,alternative='greater',paired=F,extact=F)
+      }
+    else{
+      print('enter value with samples more than 30')
+    }
+    }
+}else{
+  print('enter value with samples more than 30')
+}
+
+
+
+
+#Practical 11 timeseries
+data1 = rnorm(60)
+monthly = ts(data1,start = c(2000),frequency = 12)
+monthly
+quaterly = ts(data1,start = c(2000),frequency = 4)
+quaterly
+plot(monthly)
+plot(quaterly)
+
+lines(monthly,col=2)
+
+sales = c(2354,2379,2318,2468,2386,2569,2575,2762,2844,3000,
+          3108,3357,3075,3357,3180,3221,3420,3512,3430,3655)
+
+timeseries3 = ts(sales,start=1989,end=2008,frequency = 5)
+timeseries3
+plot(timeseries3)
+
