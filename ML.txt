@@ -1,0 +1,672 @@
+Decision Tree
+
+import pandas as pd
+df_tennis = pd.read_csv("/content/sample_data/PlayTennis.csv")
+print("\n Given Play Tennis Data Set: \n\n", df_tennis)
+
+#Function to calculate the entropy of probability of observations
+
+def entropy(probs):
+  import math
+  return sum( [-prob*math.log(prob,2) for prob in probs])
+
+#Function to calculate the entropy of given dataset
+def entropy_of_list(a_list):
+  #print("A-list", a_list)
+  from collections import Counter
+  cnt = Counter(x for x in a_list)   #Counter calculates proportion of class
+  num_instances = len(a_list)*1.0    #=14
+
+  print("\n Number of Instances of the Current Sub Class is {0}:".format(num_instances))
+  probs = [x / num_instances for x in cnt.values()]    #x means no of YES/NO
+  print("\n Classes: ",min(cnt), max(cnt))
+  print("\n Probabilities of Class {0} is {1}: ".format(min(cnt),min(probs)))
+  print("\n Probabilities of Class {0} is {1}: ".format(max(cnt),max(probs)))
+  return entropy (probs)
+
+#The initial entropy of the YES/NO attribute for datasets 
+print("\n Input Dataset for entropy calculation:\n",df_tennis['PlayTennis'])
+
+total_entropy = entropy_of_list(df_tennis['PlayTennis'])
+
+print("\n Total Entropy of Play Tennis Dataset: ", total_entropy)
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+SVM
+
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd 
+
+dataset=pd.read_csv("/content/Social_Network_Ads.csv")
+
+dataset
+
+#Splitting dataset into X and Y
+x=dataset.iloc[:,[2,3]].values 
+y=dataset.iloc[:,4].values
+
+#Splitting X and Y dataset into Train and Test data 
+from sklearn.model_selection import train_test_split
+x_train, x_test, y_train, y_test=train_test_split(x,y,test_size = 0.25, random_state=0)
+
+x_train
+
+x_test
+
+y_train
+
+y_test
+
+#Perform Feature scaling 
+#in the dataset all values are not in the same range hence we use feature scaling to overcome this problem 
+#feature scaling helps us normalize data within the range 
+
+#fit_transform will fit all the data in the variable
+
+from sklearn.preprocessing import StandardScaler
+
+sc=StandardScaler()
+X_Train=sc.fit_transform(x_train)
+X_Test=sc.fit_transform(x_test)
+
+X_Train
+
+X_Test
+
+#Fit SVM to training set 
+
+from sklearn.svm import SVC
+classifier=SVC(kernel="rbf", random_state=0)
+classifier.fit(X_Train, y_train)
+
+#Predict the test set result 
+y_pred= classifier.predict(X_Test)
+
+from sklearn.metrics import confusion_matrix, accuracy_score
+cm=confusion_matrix(y_test, y_pred)
+print(cm)
+print("\n Accuracy: ")
+accuracy_score(y_test,y_pred)
+
+
+from matplotlib.colors import ListedColormap
+
+X_set, y_set = X_Test, y_test
+X1, X2 = np.meshgrid(np.arange(start=X_set[:,0].min() - 1, stop=X_set[:,0].max() + 1, step=0.01),
+                     np.arange(start=X_set[:,1].min() - 1, stop=X_set[:,1].max() + 1, step=0.01)
+plt.contourf(X1,X2, classifier.predict(np.array([X1.ravel(), X2.ravel()]).T).reshape(X1.shape),
+             alpha=0.75, cmap=ListedColormap(('red','green')))
+
+plt.xlim(X1.min(), X1.max())
+plt.ylim(X2.min(), X2.max())
+
+for i,j in enumerate(np.unique(y_set)):
+  plt.scatter(X_set[y_set==j,0],X_set[y_set==j,1], c=ListedColormap(("red","green")))
+  plt.title("SVM (Test Set)")
+  plt.xlabel("Age")
+  plt.ylabel("Estimated Salary")
+  plt.legend()
+  plt.show()
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+k Means
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import MinMaxScaler
+
+crime_data= pd.read_csv('/content/sample_data/crime_data.csv')  
+crime_data
+
+crime_data.isnull().any()
+
+mydata=crime_data.iloc[:,crime_data.columns!='Unnamed: 0']
+inplace=True
+
+crime_data.head()
+
+mydata.info()
+
+scaler=MinMaxScaler()
+norm_mydata=mydata.copy()
+
+def minmaxscaler(x):
+  for columnName, columnData in x.iteritems():
+    x[columnName]=scaler.fit_transform(np.array(columnData).reshape(-1,1)) #Decimal method
+
+minmaxscaler(norm_mydata)
+
+norm_mydata
+
+#Scree plot or Elbow plot to find k 
+k=list(range(2,11))
+sum_of_squared_distances = []
+
+for i in k:
+  kmeans=KMeans(n_clusters=i)
+  kmeans.fit(norm_mydata)
+  sum_of_squared_distances.append(kmeans.inertia_)
+
+plt.figure(figsize=(10,5))
+plt.plot(k, sum_of_squared_distances, 'go--')
+plt.xlabel('Number of Clusters')
+plt.ylabel('Within Cluster Sum of squares')
+plt.title('Elbow Curve to find optimum K')
+
+#Now building kmeans model with k=4 
+#Instantiating
+kmeans4=KMeans(n_clusters=4)
+#Training the model
+kmeans4.fit(norm_mydata)
+#predicting
+y_pred=kmeans4.fit_predict(norm_mydata)
+print(y_pred)
+#Storing the y_pred values in a new column
+crime_data['Cluster']=y_pred+1 #to start the cluster number from 1
+
+#Storing the centroids to a dataframe 
+centroids=kmeans4.cluster_centers_
+centroids=pd.DataFrame(centroids, columns=['Murder','Assault','UrbanPop','Rape'])
+centroids.index=np.arange(1,len(centroids)+1) #Start the index from 1
+centroids
+
+#Sample visualization of clusters 
+#Lets just take any two of the features and plot to see how the observations are clustered 
+import seaborn as sns 
+plt.figure(figsize=(12,6))
+sns.set_palette("pastel")
+sns.scatterplot(x=crime_data['Murder'], y=crime_data['Assault'], hue=crime_data['Cluster'], palette='bright')
+
+sns.scatterplot(x=crime_data['Rape'], y=crime_data['UrbanPop'], hue=crime_data['Cluster'], palette='bright')
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+LogisticRegression
+
+import pandas as pd
+pima=pd.read_csv("/content/sample_data/diabetes.csv")
+
+pima.head()
+
+#split dataset in features and target variable 
+feature_cols=["Pregnancies", "Insulin", "BMI", "Age", "Glucose", "BloodPressure", "DiabetesPedigreeFunction"]
+x = pima[feature_cols]
+y = pima.Outcome #Target Variable
+
+#splitting x and y into train and test data
+from sklearn.model_selection import train_test_split
+x_train, x_test, y_train, y_test=train_test_split(x,y, test_size=0.25, random_state=0)
+
+
+from sklearn.linear_model import LogisticRegression
+
+#instantiate the model (using the default parameters)
+logreg=LogisticRegression()
+
+#fit the model with data
+logreg.fit(x_train, y_train)
+
+
+#predict the model
+y_pred=logreg.predict(x_test)
+
+
+from sklearn import metrics
+cnf_matrix=metrics.confusion_matrix(y_test, y_pred)
+cnf_matrix
+#diagonal values are accurate prediction
+
+
+from ast import increment_lineno
+import numpy as np
+import matplotlib.pyplot as mtp
+import seaborn as sns
+%matplotlib inline
+
+
+class_names=[0,1] #name of the classes
+fig, ax=mtp.subplots()
+tick_marks = np.arange(len(class_names))
+mtp.xticks(tick_marks, class_names)
+mtp.yticks(tick_marks, class_names)
+#create heatmap
+sns.heatmap(pd.DataFrame(cnf_matrix), annot=True, cmap="YlGnBu", fmt="g")
+ax.xaxis.set_label_position("top")
+mtp.tight_layout()
+mtp.title("Confusion matrix", y=1.1)
+mtp.ylabel("Actual Label")
+mtp.xlabel("Predicted Label")
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+MultipleLinearRegression
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as mtp
+%matplotlib inline
+
+
+dataset=pd.read_csv("/content/sample_data/petrol_consumption.csv")
+
+
+dataset.head()
+
+
+dataset.describe()
+
+
+#Prepare data
+x=dataset[["Petrol_tax","Average_income", "Paved_Highways","Population_Driver_licence(%)"]]
+y=dataset["Petrol_Consumption"]
+
+
+from sklearn.model_selection import train_test_split
+x_train, x_test, y_train, y_test=train_test_split(x,y, test_size=0.2, random_state=0)
+
+
+#Train Algorithm
+from sklearn.linear_model import LinearRegression
+regressor=LinearRegression()
+regressor.fit(x_train, y_train)
+
+
+coeff_df=pd.DataFrame(regressor.coef_, x.columns, columns=["Coefficient"])
+coeff_df
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Naive Bayes
+
+import pandas as pd
+import numpy as np
+
+
+dataset=pd.read_csv('/content/sample_data/Fish.csv')
+
+
+dataset
+
+
+print("The different species are: ", list(dataset['Species'].unique()))
+
+
+print("The data for the species Bream and Perch are: ")
+dataframe=pd.DataFrame(dataset[dataset['Species'].isin(['Bream','Perch'])])
+dataframe.index=range(len(dataframe))
+dataframe
+
+
+dataframe
+
+
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix
+
+
+scaler=StandardScaler()
+dataframe.iloc[:,1:]=scaler.fit_transform(dataframe.iloc[:,1:])
+xtrain,xtest,ytrain,ytest=train_test_split(dataframe.iloc[:,1:].values,dataframe['Species'].values, test_size=0.15)
+
+
+xtrain,xtest,ytrain,ytest
+
+
+from sklearn.naive_bayes import GaussianNB
+
+
+NB_model=GaussianNB()
+NB_model.fit(xtrain,ytrain)
+
+
+print("Training R2 score: ",NB_model.score(xtrain,ytrain))
+
+
+ypred=NB_model.predict(xtest)
+print("Predictions \n", ypred)
+
+
+print("True Values \n", ytest)
+
+
+conf_mat=confusion_matrix(ytest, ypred)
+print("Confusion Matrix \n", conf_mat)
+print(classification_report(ytest,ypred))
+print("Accuracy: ",(conf_mat[0][0]+conf_mat[1][1])/len(ytest))
+
+
+probs=NB_model.predict_proba(xtest)
+probs=probs[:,1]
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+PCA
+
+
+from sklearn.datasets import load_breast_cancer
+
+breast=load_breast_cancer()
+
+breast
+
+breast_data=breast.data
+
+breast_data
+
+breast.data.shape
+
+breast_data
+
+breast_label=breast.target
+
+breast_label
+
+breast_label.shape
+
+import numpy as np
+labels=np.reshape(breast_label,(569,1))
+labels
+
+final_breast_data=np.concatenate([breast_data, labels], axis=1)
+final_breast_data.shape
+
+import pandas as pd
+breast_dataset=pd.DataFrame(final_breast_data)
+
+breast_dataset
+
+final_breast_data
+
+features=breast.feature_names
+features
+
+features_labels=np.append(features, 'label')
+
+breast_dataset.columns=features_labels
+
+breast_dataset.head()
+
+breast_dataset['label'].replace(0,'Benign', inplace=True)
+breast_dataset['label'].replace(1,'Malignant', inplace=True)
+
+breast_dataset.tail()
+
+from sklearn.preprocessing import StandardScaler
+x=breast_dataset.loc[:,features].values
+x=StandardScaler().fit_transform(x) #normalizing the features 
+
+x.shape
+
+np.mean(x),np.std(x)
+
+feat_cols=['feature'+str(i) for i in range(x.shape[1])]
+
+normalised_breast=pd.DataFrame(x,columns=feat_cols)
+
+normalised_breast.tail()
+
+from sklearn.decomposition import PCA
+pca_breast=PCA(n_components=2)
+principalComponent_breast=pca_breast.fit_transform(x)
+
+principal_breast_Df=pd.DataFrame(data=principalComponent_breast, columns=['+', 'principal component 2'])
+
+principal_breast_Df.tail()
+
+print('Explained variation per principal component : {}',format(pca_breast.explained_variance_ratio_))
+
+import matplotlib.pyplot as plt
+
+
+plt.figure(figsize=(10,10))
+
+plt.xticks(fontsize=12)
+plt.yticks(fontsize=14)
+
+plt.xlabel('Principal Component - 1',fontsize=20)
+plt.ylabel('Principal Component -2', fontsize=20)
+plt.title("Principal Component Analysis of Breast Cancer Dataset", fontsize=20)
+
+targets=['Benign', 'Malignant']
+colors=['r','g']
+
+for target,color in zip(targets, colors):
+  indicesToKeep=breast_dataset['label']==target
+  plt.scatter(principal_breast_Df.loc[indicesToKeep, '+'], principal_breast_Df.loc[indicesToKeep,'principal component 2'], c=color, s=50)
+  
+plt.legend(targets, prop={'size':15})
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Simple_Linear_Regression
+
+import numpy as np
+import matplotlib.pyplot as mtp
+import pandas as pd
+
+data_set= pd.read_csv('/content/sample_data/Salary_Data.csv')  
+
+data_set
+
+x=data_set.iloc[:,:-1].values
+
+x
+
+y=data_set.iloc[:, 1].values
+
+y
+
+from sklearn.model_selection import train_test_split
+x_train, x_test, y_train, y_test= train_test_split(x,y, test_size=1/3, random_state=0)
+
+x_train
+
+x_test
+
+y_train
+
+y_test
+
+from sklearn.linear_model import LinearRegression
+regressor=LinearRegression() #regressor is a variable that has all properties of LinearRegression alg
+regressor.fit(x_train,y_train)
+
+y_pred=regressor.predict(x_test)
+
+mtp.scatter(x_train, y_train, color="green")
+
+mtp.scatter(x_train, y_train, color="green")
+mtp.plot(x_test, y_pred, color="red")
+mtp.title("Salary vs Experience (training data)")
+mtp.xlabel("Years of Experience")
+mtp.ylabel("Salary (in rupees)")
+mtp.show()
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Simple_MultipleLR
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as mtp
+%matplotlib inline
+
+dataset=pd.read_csv("/content/sample_data/student_scores.csv")
+
+dataset
+
+x=dataset.iloc[:,:1].values
+x
+
+y=dataset.iloc[:,1].values
+y
+
+from sklearn.model_selection import train_test_split
+x_train, x_test, y_train, y_test= train_test_split(x,y, test_size=1/3, random_state=0)
+
+x_train
+
+x_test
+
+y_train
+
+y_test
+
+from sklearn.linear_model import LinearRegression
+regressor=LinearRegression()
+regressor.fit(x_train,y_train)
+
+y_pred=regressor.predict(x_test)
+
+mtp.scatter(x_train,y_train, color="green")
+mtp.plot(x_test,y_pred, color="red")
+mtp.title("STUDENT SCORE (Hours vs Scores)")
+mtp.xlabel("Hours")
+mtp.ylabel("Score")
+mtp.show()
+
+print(regressor.intercept_)
+
+print(regressor.coef_)
+
+from sklearn import metrics
+print("Mean Absolute Error:", metrics.mean_absolute_error(y_test,y_pred))
+print("Mean Squared Error:", metrics.mean_squared_error(y_test,y_pred))
+print("Root Mean Squared Error:", np.sqrt(metrics.mean_squared_error(y_test,y_pred)))
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+SLR
+
+import numpy as np
+import matplotlib.pyplot as mtp
+import pandas as pd
+
+data_set=pd.read_csv("/content/sample_data/PotatoPrice2.csv")
+data_set
+
+x=data_set.iloc[:,:1].values
+y=data_set.iloc[:,1].values
+
+x
+
+y
+
+from sklearn.model_selection import train_test_split
+x_train, x_test, y_train, y_test= train_test_split(x,y, test_size=1/3, random_state=0)
+
+x_test
+
+y_test
+
+x_train
+
+y_train
+
+from sklearn.linear_model import LinearRegression
+regressor=LinearRegression()
+regressor.fit(x_train,y_train)
+
+y_pred=regressor.predict(x_test)
+
+mtp.scatter(x_train,y_train, color="green")
+mtp.plot(x_test,y_pred, color="red")
+mtp.title("Weight Vs Price")
+mtp.xlabel("Weight (in kg)")
+mtp.ylabel("Price in Rupees")
+mtp.show()
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+SVM
+
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd 
+
+dataset=pd.read_csv("/content/Social_Network_Ads.csv")
+
+dataset
+
+#Splitting dataset into X and Y
+x=dataset.iloc[:,[2,3]].values 
+y=dataset.iloc[:,4].values
+
+#Splitting X and Y dataset into Train and Test data 
+from sklearn.model_selection import train_test_split
+x_train, x_test, y_train, y_test=train_test_split(x,y,test_size = 0.25, random_state=0)
+
+x_train
+
+x_test
+
+y_train
+
+y_test
+
+
+#Perform Feature scaling 
+#in the dataset all values are not in the same range hence we use feature scaling to overcome this problem 
+#feature scaling helps us normalize data within the range 
+
+#fit_transform will fit all the data in the variable
+
+from sklearn.preprocessing import StandardScaler
+
+sc=StandardScaler()
+X_Train=sc.fit_transform(x_train)
+X_Test=sc.fit_transform(x_test)
+
+
+
+X_Train
+
+X_Test
+
+
+#Fit SVM to training set 
+
+from sklearn.svm import SVC
+classifier=SVC(kernel="rbf", random_state=0)
+classifier.fit(X_Train, y_train)
+
+#Predict the test set result 
+y_pred= classifier.predict(X_Test)
+
+
+#Make the confusion matrix 
+
+from sklearn.metrics import confusion_matrix, accuracy_score
+cm=confusion_matrix(y_test, y_pred)
+print(cm)
+print("\n Accuracy: ")
+accuracy_score(y_test,y_pred)
+
+
+#Visualise the test set results 
+
+from matplotlib.colors import ListedColormap
+
+X_set, y_set = X_Test, y_test
+X1, X2 = np.meshgrid(np.arange(start=X_set[:,0].min() - 1, stop=X_set[:,0].max() + 1, step=0.01),
+                     np.arange(start=X_set[:,1].min() - 1, stop=X_set[:,1].max() + 1, step=0.01)
+plt.contourf(X1,X2, classifier.predict(np.array([X1.ravel(), X2.ravel()]).T).reshape(X1.shape),
+             alpha=0.75, cmap=ListedColormap(('red','green')))
+
+plt.xlim(X1.min(), X1.max())
+plt.ylim(X2.min(), X2.max())
+
+for i,j in enumerate(np.unique(y_set)):
+  plt.scatter(X_set[y_set==j,0],X_set[y_set==j,1], c=ListedColormap(("red","green")))
+  plt.title("SVM (Test Set)")
+  plt.xlabel("Age")
+  plt.ylabel("Estimated Salary")
+  plt.legend()
+  plt.show()
